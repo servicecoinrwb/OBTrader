@@ -620,7 +620,12 @@
                 }
                 
                 try {
-                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    // Create provider with Base network configuration
+                    provider = new ethers.providers.Web3Provider(window.ethereum, {
+                        chainId: 8453,
+                        name: 'base',
+                        ensAddress: null // Disable ENS lookups
+                    });
                     const accounts = await provider.send("eth_requestAccounts", []);
                     signer = provider.getSigner();
                     updateUIForAccount(accounts[0]);
@@ -684,7 +689,9 @@
                     showModal('Processing Payment', 'Your transaction is being processed. Please wait...');
                     await tx.wait();
                     
-                    const userAddress = await signer.getAddress();
+                    // Get user address directly from the accounts array instead of using signer.getAddress()
+                    const accounts = await provider.send("eth_accounts", []);
+                    const userAddress = accounts[0];
                     recordPayment(userAddress);
                     updateUIForAccount(userAddress);
 
