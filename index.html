@@ -663,9 +663,20 @@
             async function handlePayment(event) {
                 event.target.disabled = true;
 
-                if (currentAccount && hasPaid(currentAccount)) {
+                // Get current account first to avoid ENS issues later
+                let currentAccountAddress;
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    currentAccountAddress = accounts[0];
+                } catch (error) {
+                    showModal('Wallet Error', 'Unable to access wallet. Please try again.');
+                    event.target.disabled = false;
+                    return;
+                }
+
+                if (currentAccountAddress && hasPaid(currentAccountAddress)) {
                     window.location.href = coursePageUrl;
-                    return; // No need to disable/enable button here
+                    return;
                 }
                 
                 showModal('Connecting Wallet', 'Please approve the connection in your wallet...');
@@ -691,16 +702,8 @@
                     showModal('Processing Payment', 'Your transaction is being processed. Please wait...');
                     await tx.wait();
                     
-                    // Get user address - fallback to accounts array if ENS error occurs
-                    let userAddress;
-                    try {
-                        userAddress = await signer.getAddress();
-                    } catch (ensError) {
-                        // Fallback to getting address from accounts if ENS fails
-                        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                        userAddress = accounts[0];
-                    }
-                    
+                    // Use the address we got at the beginning instead of calling signer.getAddress()
+                    const userAddress = currentAccountAddress;
                     recordPayment(userAddress);
                     updateUIForAccount(userAddress);
 
@@ -725,7 +728,7 @@
                         message = 'You rejected the transaction in your wallet.';
                     }
                     showModal(title, message);
-                    setTimeout(hideModal, 4000); // Hide error modal after 4 seconds
+                    setTimeout(hideModal, 4000);
                 } finally {
                     event.target.disabled = false;
                 }
