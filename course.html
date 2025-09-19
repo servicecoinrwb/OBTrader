@@ -156,6 +156,15 @@
             cursor: not-allowed;
         }
 
+        #api-key-input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
         #audio-player {
             width: 100%;
             margin-top: 1rem;
@@ -314,6 +323,7 @@
              <a href="index.html" class="back-link" style="margin-bottom: 0;">← Back to Home</a>
              <button id="read-aloud-btn" class="read-aloud-button">Read Aloud 🔊</button>
         </div>
+        <input type="password" id="api-key-input" placeholder="Enter Google AI API Key to enable audio">
         <audio id="audio-player" controls style="display: none;"></audio>
 
         <div class="header">
@@ -340,13 +350,13 @@
 
         <h2>Chapter 2: Your Trading Roadmap 🗺️</h2>
         <h3>Step 1: Master the Fundamentals</h3>
-        <p>Before placing a trade, understand the environment. Read the documentation for <strong>Chainlink Data Feeds</strong> and the specific platform you intend to use. A deep understanding of leverage, fees, and funding rates is critical.</p>
+        <p>Before placing a trade, understand the environment. Read the documentation for <strong><a href="https://docs.chain.link/data-feeds" target="_blank" rel="noopener noreferrer">Chainlink Data Feeds</a></strong> and the specific platform you intend to use, like <strong><a href="https://gains.trade/" target="_blank" rel="noopener noreferrer">Gains Network (gTrade)</a></strong>. A deep understanding of leverage, fees, and funding rates is critical.</p>
         
         <h3>Step 2: Develop a Trading Strategy</h3>
-        <p>A strategy is your rulebook. Learn Technical Analysis (TA) concepts like market structure, support/resistance, and indicators. Most importantly, define your <strong>Risk Management</strong> rules: position sizing, using a <strong>Stop-Loss (SL)</strong>, and setting a <strong>Take-Profit (TP)</strong>.</p>
+        <p>A strategy is your rulebook. Learn <strong><a href="https://www.investopedia.com/articles/technical/02/101502.asp" target="_blank" rel="noopener noreferrer">Technical Analysis (TA)</a></strong> concepts like market structure, support/resistance, and indicators. Most importantly, define your <strong>Risk Management</strong> rules: position sizing, using a <strong>Stop-Loss (SL)</strong>, and setting a <strong>Take-Profit (TP)</strong>.</p>
 
         <h3>Step 3: Practice Without Risk</h3>
-        <p>Use paper trading features on platforms like TradingView to test your strategy with fake money. Keep a detailed trading journal of every trade to analyze your performance and refine your rules.</p>
+        <p>Use paper trading features on platforms like <strong><a href="https://www.tradingview.com/" target="_blank" rel="noopener noreferrer">TradingView</a></strong> to test your strategy with fake money. Keep a detailed trading journal of every trade to analyze your performance and refine your rules.</p>
 
         <h3>Step 4: Go Live, But Start Small</h3>
         <p>Once you are consistently profitable on paper, you can trade with real, but minimal, capital. Start with low leverage (2x-5x) to get a feel for the market and continue journaling every trade.</p>
@@ -1184,21 +1194,13 @@
         
         // 3. Main TTS function
         async function handleReadAloud() {
-            // IMPORTANT: The Text-to-Speech model (gemini-2.5-flash-preview-tts) requires a Google AI API key.
-            // The free tier is generous. You can get a key from Google AI Studio.
-            // 1. Get your key here: https://aistudio.google.com/app/apikey
-            // 2. Paste it below to enable the Read Aloud feature.
-            const apiKey = ""; // <-- PASTE YOUR API KEY HERE
+            const apiKey = document.getElementById('api-key-input').value;
 
             if (!apiKey) {
-                readAloudBtn.textContent = 'API Key Required';
-                readAloudBtn.disabled = true;
-                const simFeedback = document.querySelector('#trading-simulator-app #result-feedback');
-                if (simFeedback) {
-                    simFeedback.textContent = 'To enable audio, add your Google AI API key to the script in course.html.';
-                    simFeedback.className = 'result-feedback draw';
-                    simFeedback.style.display = 'block';
-                }
+                alert('To enable the "Read Aloud" feature, please get a free Google AI API key from AI Studio and paste it into the input box.');
+                const keyInput = document.getElementById('api-key-input');
+                keyInput.style.borderColor = '#ef5350';
+                keyInput.focus();
                 return;
             }
 
