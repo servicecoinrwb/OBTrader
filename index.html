@@ -271,12 +271,14 @@
             } catch (error) {
                 console.error("Payment failed:", error);
                 let userMessage = "An unexpected error occurred. Please try again.";
-                if (error.code === 4001 || (error.message && error.message.includes("User rejected"))) {
+                
+                // UPDATED: Better error handling for specific issues
+                if (error.code === 'UNPREDICTABLE_GAS_LIMIT' || (error.reason && error.reason.includes("transfer amount exceeds balance"))) {
+                    userMessage = "Payment failed. Please ensure you have at least 1 USDC and enough ETH for gas fees on the Base network.";
+                } else if (error.code === 4001 || (error.message && error.message.includes("User rejected"))) {
                     userMessage = "The request was rejected. Please try again.";
                 } else if (error.code === 4902) {
                     userMessage = "This app runs on the Base network. Please add the Base network to your wallet and try again.";
-                } else if (error.message && error.message.includes("insufficient funds")) {
-                    userMessage = "Insufficient USDC or gas funds for the transaction.";
                 }
                 
                 showModal(userMessage);
