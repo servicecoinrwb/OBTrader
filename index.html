@@ -6,8 +6,8 @@
     <title>The Ultimate Guide to Oracle-Based Trading</title>
     <link rel="icon" href="data:,">
     <script 
-        src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.0.32/ethers.umd.min.js"
-        integrity="sha512-Y4VoqZWeBB10he7+Q2Nw8vVoubp8DlBqtj8TQKo79BFP0+F16A8RY8mLbIjTb3WEAo5I1HHjH8xNDAa/6WxGvg=="
+        src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.6.9/ethers.umd.min.js"
+        integrity="sha512-JGo7s3UNfLyczlNsTqAO0DTGHQv35l4IK0pW9pB5n/TdFU6MKLw2ZUECBTDBANSqH8yc2PQs3g6bP3dIIU77Vg=="
         crossorigin="anonymous"
         referrerpolicy="no-referrer"
     ></script>
@@ -624,8 +624,16 @@
                     // Get accounts first using direct wallet method
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                     
-                    // Create simple provider without any network specification
+                    // Create provider and immediately set it to Base network context
                     provider = new ethers.providers.Web3Provider(window.ethereum);
+                    
+                    // Override the network detection to prevent ENS lookups
+                    provider._network = {
+                        name: 'base',
+                        chainId: 8453,
+                        ensAddress: null
+                    };
+                    
                     signer = provider.getSigner();
                     
                     updateUIForAccount(accounts[0]);
