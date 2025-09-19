@@ -196,13 +196,12 @@
     <!-- ===== CRYPTO PAYMENT SCRIPT ===== -->
     <script>
         // --- Configuration ---
-        const receiverAddress = "0x246926a1aa7a5266661b193E61f5390d06B965E0"; 
-        // CORRECTED: Converted address to lowercase to fix checksum error.
+        const receiverAddress = "0x246926a1aa7a5266661b193e61f5390d06b965e0"; 
         const usdcContractAddress = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"; // Base network
         const usdcAbi = ["function transfer(address to, uint256 amount)"];
 
         // --- Element References ---
-        const allPayButtons = [document.getElementById('pay-button-header'), document.getElementById('pay-button-footer')];
+        let allPayButtons = [document.getElementById('pay-button-header'), document.getElementById('pay-button-footer')];
         const statusModal = document.getElementById('status-modal');
         const modalMessage = document.getElementById('modal-message');
         const modalCloseButton = document.getElementById('modal-close-button');
@@ -265,6 +264,14 @@
                 showModal("Processing transaction... please wait.");
                 await tx.wait();
 
+                // ADDED: Save user's address to localStorage on success
+                const signerAddress = await signer.getAddress();
+                const paidWallets = JSON.parse(localStorage.getItem('paidWallets')) || [];
+                if (!paidWallets.includes(signerAddress)) {
+                    paidWallets.push(signerAddress);
+                    localStorage.setItem('paidWallets', JSON.stringify(paidWallets));
+                }
+
                 showModal("Payment successful! Redirecting...");
                 window.location.href = "course.html";
 
@@ -272,7 +279,6 @@
                 console.error("Payment failed:", error);
                 let userMessage = "An unexpected error occurred. Please try again.";
                 
-                // UPDATED: Better error handling for specific issues
                 if (error.code === 'UNPREDICTABLE_GAS_LIMIT' || (error.reason && error.reason.includes("transfer amount exceeds balance"))) {
                     userMessage = "Payment failed. Please ensure you have at least 1 USDC and enough ETH for gas fees on the Base network.";
                 } else if (error.code === 4001 || (error.message && error.message.includes("User rejected"))) {
@@ -286,7 +292,58 @@
             }
         }
 
-        allPayButtons.forEach(btn => btn.addEventListener('click', handlePayment));
+        // --- NEW: Access Management ---
+        function updateButtonsForAccess(hasAccess) {
+             // Re-select buttons to ensure we have the latest references
+            allPayButtons = [document.getElementById('pay-button-header'), document.getElementById('pay-button-footer')];
+            allPayButtons.forEach(btn => {
+                // Clone and replace the button to remove old event listeners
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+
+                if (hasAccess) {
+                    newBtn.textContent = "Access Course";
+                    newBtn.addEventListener('click', () => window.location.href = "course.html");
+                } else {
+                    if (newBtn.id === 'pay-button-header') newBtn.textContent = "Get Your Copy Now";
+                    else newBtn.textContent = "I'm Ready to Start";
+                    newBtn.addEventListener('click', handlePayment);
+                }
+            });
+        }
+
+        async function checkAccess() {
+            try {
+                if (!window.ethereum) {
+                    updateButtonsForAccess(false);
+                    return;
+                }
+                
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const accounts = await provider.listAccounts();
+                
+                if (accounts.length > 0) {
+                    const paidWallets = JSON.parse(localStorage.getItem('paidWallets')) || [];
+                    const hasAccess = paidWallets.includes(accounts[0]);
+                    updateButtonsForAccess(hasAccess);
+                } else {
+                    updateButtonsForAccess(false);
+                }
+            } catch (err) {
+                console.error("Error checking access:", err);
+                updateButtonsForAccess(false);
+            }
+        }
+
+        function initializeApp() {
+            checkAccess();
+            if (window.ethereum) {
+                window.ethereum.on('accountsChanged', checkAccess);
+            }
+        }
+
+        // --- Initialize the app on page load ---
+        document.addEventListener('DOMContentLoaded', initializeApp);
     </script>
 </body>
 </html>
