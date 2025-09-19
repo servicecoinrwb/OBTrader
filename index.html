@@ -102,6 +102,43 @@
             background-color: #343a40;
             color: #f8f9fa;
         }
+        /* Styles for the new status modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 2rem 3rem;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        #modal-message {
+            font-size: 1.2rem;
+            color: #343a40;
+            margin-top: 0;
+            margin-bottom: 2rem;
+        }
+        #modal-close-button {
+            margin-top: 0; /* Override default margin */
+        }
     </style>
 </head>
 <body>
@@ -109,7 +146,6 @@
     <div class="header">
         <h1>Stop Gambling. Start Trading.</h1>
         <p class="sub-headline">The definitive guide to understanding oracle-based platforms, mastering market psychology, and managing risk like a professional.</p>
-        <!-- Changed from an <a> tag to a <button> tag to trigger the script -->
         <button id="pay-button-header" class="cta-button">Get Your Copy Now</button>
         <p class="price">Only 1.00 USDC</p>
     </div>
@@ -140,124 +176,114 @@
         <div class="section" style="text-align:center;">
              <h2>Ready to Level Up Your Trading?</h2>
              <p class="sub-headline">For the price of a coffee, you can get the framework that will save you from costly beginner mistakes and put you on the path to consistent trading.</p>
-             <!-- Changed this button as well for consistency -->
              <button id="pay-button-footer" class="cta-button">I'm Ready to Start</button>
              <p class="price">30-Day Money-Back Guarantee</p>
         </div>
-
     </div>
 
     <div class="footer">
         <p>&copy; 2025 Your Brand Name. All Rights Reserved.</p>
     </div>
 
+    <!-- Status Modal HTML -->
+    <div id="status-modal" class="modal-overlay">
+        <div class="modal-content">
+            <p id="modal-message">Processing your request...</p>
+            <button id="modal-close-button" class="cta-button">Close</button>
+        </div>
+    </div>
+
     <!-- ===== CRYPTO PAYMENT SCRIPT ===== -->
     <script>
         // --- Configuration ---
-        // IMPORTANT: Replace this with your actual wallet address.
         const receiverAddress = "0x246926a1aa7a5266661b193E61f5390d06B965E0"; 
+        const usdcContractAddress = "0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913"; // Base network
+        const usdcAbi = ["function transfer(address to, uint256 amount)"];
 
-        // UPDATED: USDC contract address on the Base network (low fees).
-        const usdcContractAddress = "0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913"; 
+        // --- Element References ---
+        const allPayButtons = [document.getElementById('pay-button-header'), document.getElementById('pay-button-footer')];
+        const statusModal = document.getElementById('status-modal');
+        const modalMessage = document.getElementById('modal-message');
+        const modalCloseButton = document.getElementById('modal-close-button');
 
-        // The ABI (Application Binary Interface) for the USDC transfer function.
-        const usdcAbi = [
-            "function transfer(address to, uint256 amount)"
-        ];
+        // --- Modal Helper Functions ---
+        function showModal(message) {
+            modalMessage.textContent = message;
+            statusModal.classList.add('visible');
+        }
 
-        // --- Get references to the HTML buttons ---
-        const payButtonHeader = document.getElementById('pay-button-header');
-        const payButtonFooter = document.getElementById('pay-button-footer');
-        const allPayButtons = [payButtonHeader, payButtonFooter];
+        function hideModal() {
+            statusModal.classList.remove('visible');
+        }
+
+        modalCloseButton.addEventListener('click', hideModal);
+
+        // --- Reset Button State ---
+        function resetButtonState() {
+            allPayButtons.forEach(btn => btn.disabled = false);
+            allPayButtons[0].textContent = "Get Your Copy Now";
+            allPayButtons[1].textContent = "I'm Ready to Start";
+        }
 
         // --- Main Payment Function ---
         async function handlePayment() {
-            // 1. Check if a wallet like MetaMask is installed.
             if (typeof window.ethereum === 'undefined') {
-                alert("Please install a crypto wallet like MetaMask to continue.");
+                showModal("Please install a crypto wallet like MetaMask to continue.");
                 return;
             }
 
-            // A quick check to make sure the user has entered their address.
-            if (receiverAddress === "YOUR_WALLET_ADDRESS_HERE") {
-                alert("The website owner needs to configure their wallet address first.");
-                return;
-            }
+            allPayButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.textContent = "Processing...";
+            });
 
             try {
-                // Disable buttons to prevent multiple clicks
-                allPayButtons.forEach(btn => {
-                    btn.disabled = true;
-                    btn.textContent = "Processing...";
-                });
-
-                // 2. Connect to the user's wallet (e.g., MetaMask).
                 const provider = new ethers.providers.Web3Provider(window.ethereum);
-                await provider.send("eth_requestAccounts", []); // Prompts user to connect.
+                
+                showModal("Please connect your wallet...");
+                await provider.send("eth_requestAccounts", []);
 
-                // --- ADDED: Network Switching Logic for Base ---
-                const baseChainIdHex = '0x2105'; // 8453 in hexadecimal
-                const baseChainIdDecimal = 8453;
+                const baseChainIdHex = '0x2105'; // 8453
                 const network = await provider.getNetwork();
 
-                if (network.chainId !== baseChainIdDecimal) {
-                    try {
-                        console.log("Requesting to switch to Base network...");
-                        await window.ethereum.request({
-                            method: 'wallet_switchEthereumChain',
-                            params: [{ chainId: baseChainIdHex }],
-                        });
-                    } catch (switchError) {
-                        // This error code (4902) indicates that the chain has not been added to the wallet.
-                        if (switchError.code === 4902) {
-                            alert("This app runs on the Base network. Please add the Base network to your wallet and try again.");
-                        } else {
-                            // Handle other errors, e.g., user rejection.
-                            console.error("Could not switch network:", switchError);
-                            alert("Failed to switch network. Please select the Base network in your wallet.");
-                        }
-                        throw switchError; // Stop the process if switching fails
-                    }
+                if (network.chainId !== 8453) {
+                    showModal("Please switch to the Base network in your wallet.");
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: baseChainIdHex }],
+                    });
                 }
                 
-                // Now that we're on the right network, get the signer.
                 const signer = provider.getSigner();
-
-                // 3. Create an instance of the USDC contract.
                 const usdcContract = new ethers.Contract(usdcContractAddress, usdcAbi, signer);
-
-                // 4. Set the amount to 1 USDC. USDC has 6 decimal places.
                 const amount = ethers.utils.parseUnits("1.0", 6);
 
-                // 5. Prompt the user to sign and send the transaction.
-                console.log("Requesting payment transaction from user...");
+                showModal("Please confirm the 1 USDC transaction in your wallet.");
                 const tx = await usdcContract.transfer(receiverAddress, amount);
                 
-                // 6. Wait for the transaction to be confirmed on the blockchain.
-                console.log("Waiting for transaction confirmation...");
+                showModal("Processing transaction... please wait.");
                 await tx.wait();
-                console.log("Payment successful! Transaction hash:", tx.hash);
 
-                // 7. Redirect to the course page upon success.
+                showModal("Payment successful! Redirecting...");
                 window.location.href = "course.html";
 
             } catch (error) {
-                // Handle errors (e.g., user rejects the transaction).
                 console.error("Payment failed:", error);
-                alert("Payment failed or was rejected. Please try again.");
-                // Re-enable buttons if payment fails
-                allPayButtons.forEach(btn => {
-                    btn.disabled = false;
-                });
-                payButtonHeader.textContent = "Get Your Copy Now";
-                payButtonFooter.textContent = "I'm Ready to Start";
+                let userMessage = "An unexpected error occurred. Please try again.";
+                if (error.code === 4001 || (error.message && error.message.includes("User rejected"))) {
+                    userMessage = "The request was rejected. Please try again.";
+                } else if (error.code === 4902) {
+                    userMessage = "This app runs on the Base network. Please add the Base network to your wallet and try again.";
+                } else if (error.message && error.message.includes("insufficient funds")) {
+                    userMessage = "Insufficient USDC or gas funds for the transaction.";
+                }
+                
+                showModal(userMessage);
+                resetButtonState();
             }
         }
 
-        // --- Attach the function to the buttons' click events ---
-        allPayButtons.forEach(btn => {
-            btn.addEventListener('click', handlePayment);
-        });
+        allPayButtons.forEach(btn => btn.addEventListener('click', handlePayment));
     </script>
 </body>
 </html>
