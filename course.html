@@ -374,6 +374,7 @@
         }
 
         .chart-container {
+            position: relative;
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(0, 210, 255, 0.2);
             border-radius: 10px;
@@ -381,30 +382,81 @@
             margin: 20px 0;
             display: flex;
             justify-content: center;
-            overflow-x: auto;
+            overflow: hidden;
         }
 
-        #tradingChart {
+        #price-chart {
             background: rgba(0, 20, 40, 0.8);
             border-radius: 8px;
             max-width: 100%;
             height: auto;
         }
 
-        .trading-controls {
+        .chart-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            pointer-events: none;
+        }
+
+        .draggable-line {
+            position: absolute;
+            width: calc(100% - 40px);
+            height: 2px;
+            background: #00d2ff;
+            cursor: ns-resize;
+            pointer-events: all;
+        }
+
+        .draggable-line:hover {
+            background: #00ff88;
+            height: 3px;
+        }
+
+        .line-label {
+            position: absolute;
+            right: 5px;
+            top: -20px;
+            background: rgba(0, 20, 40, 0.9);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        #stop-loss-line {
+            background: #ff4757;
+            top: 75%;
+        }
+
+        #take-profit-line {
+            background: #00ff88;
+            top: 25%;
+        }
+
+        #entry-line {
+            background: #00d2ff;
+            top: 50%;
+        }
+
+        .trading-panel {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 20px;
             flex-wrap: wrap;
+            margin-bottom: 20px;
         }
 
-        .order-controls {
+        .order-buttons {
             display: flex;
             gap: 15px;
         }
 
-        .trade-btn {
+        .trade-button {
             padding: 12px 24px;
             border: none;
             border-radius: 10px;
@@ -415,27 +467,27 @@
             letter-spacing: 0.5px;
         }
 
-        .trade-btn.long {
+        .trade-button.long {
             background: linear-gradient(45deg, #00ff88, #00d2ff);
             color: #001122;
         }
 
-        .trade-btn.short {
+        .trade-button.short {
             background: linear-gradient(45deg, #ff4757, #ff6b7a);
             color: white;
         }
 
-        .trade-btn.close {
+        .trade-button.close {
             background: linear-gradient(45deg, #ffa726, #ffb74d);
             color: #001122;
         }
 
-        .trade-btn:hover {
+        .trade-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
 
-        .trade-btn:active {
+        .trade-button:active {
             transform: translateY(0);
         }
 
@@ -446,7 +498,7 @@
             min-width: 300px;
         }
 
-        .info-item {
+        .info-row {
             display: flex;
             justify-content: space-between;
             padding: 8px 12px;
@@ -455,14 +507,87 @@
             border-left: 3px solid #00d2ff;
         }
 
-        .info-item span:first-child {
+        .info-row span:first-child {
             color: #a0a0a0;
             font-size: 14px;
         }
 
-        .info-item span:last-child {
+        .info-row span:last-child {
             color: #00ff88;
             font-weight: 600;
+        }
+
+        .performance-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 210, 255, 0.2);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #00d2ff;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #a0a0a0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .trade-history {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .trade-history h4 {
+            color: #00d2ff;
+            margin-bottom: 15px;
+        }
+
+        .history-table {
+            width: 100%;
+        }
+
+        .history-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 210, 255, 0.1);
+            border-radius: 5px;
+            font-weight: 600;
+            color: #00d2ff;
+            margin-bottom: 10px;
+        }
+
+        .history-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+        }
+
+        .history-row.profit {
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        .history-row.loss {
+            background: rgba(255, 71, 87, 0.05);
         }
 
         @media (max-width: 768px) {
@@ -710,25 +835,31 @@
     <!-- Trading Simulator Card -->
     <div class="simulator-card">
         <div class="simulator-header">
-            <h2>🎮 Interactive Trading Simulator</h2>
-            <p>Practice your oracle-based trading strategies with real market scenarios</p>
+            <h2>Interactive Trading Simulator</h2>
+            <p>Practice oracle-based trading with real market scenarios. Drag the lines to set your stop loss and take profit levels.</p>
         </div>
         
-        <div class="simulator-content">
+        <div id="trading-simulator-app">
             <div class="simulator-controls">
                 <div class="control-group">
-                    <label>Market Scenario:</label>
-                    <select id="scenarioSelect">
+                    <label for="market-scenario">Market Scenario:</label>
+                    <select id="market-scenario">
                         <option value="uptrend">Uptrend Bull Flag</option>
+                        <option value="downtrend">Downtrend Bear Flag</option>
                         <option value="range">Range Consolidation</option>
-                        <option value="support">Support Level Bounce</option>
-                        <option value="resistance">Resistance Rejection</option>
+                        <option value="breakout">Support/Resistance Break</option>
                     </select>
                 </div>
                 
                 <div class="control-group">
-                    <label>Leverage:</label>
-                    <select id="leverageSelect">
+                    <label for="position-size">Position Size (USDT):</label>
+                    <input type="number" id="position-size" value="1000" min="100" max="10000" step="100">
+                </div>
+                
+                <div class="control-group">
+                    <label for="leverage">Leverage:</label>
+                    <select id="leverage">
+                        <option value="1">1x</option>
                         <option value="5">5x</option>
                         <option value="10" selected>10x</option>
                         <option value="25">25x</option>
@@ -736,41 +867,78 @@
                         <option value="100">100x</option>
                     </select>
                 </div>
-                
-                <div class="control-group">
-                    <label>Position Size:</label>
-                    <input type="number" id="positionSize" value="1000" min="100" step="100">
-                    <span>USDC</span>
-                </div>
             </div>
 
             <div class="chart-container">
-                <canvas id="tradingChart" width="800" height="400"></canvas>
+                <canvas id="price-chart" width="800" height="400"></canvas>
+                <div class="chart-overlay">
+                    <div class="draggable-line" id="stop-loss-line">
+                        <div class="line-label">Stop Loss</div>
+                    </div>
+                    <div class="draggable-line" id="take-profit-line">
+                        <div class="line-label">Take Profit</div>
+                    </div>
+                    <div class="draggable-line" id="entry-line">
+                        <div class="line-label">Entry</div>
+                    </div>
+                </div>
             </div>
 
-            <div class="trading-controls">
-                <div class="order-controls">
-                    <button class="trade-btn long" onclick="openPosition('long')">Long</button>
-                    <button class="trade-btn short" onclick="openPosition('short')">Short</button>
-                    <button class="trade-btn close" onclick="closePosition()">Close Position</button>
+            <div class="trading-panel">
+                <div class="order-buttons">
+                    <button id="long-btn" class="trade-button long">Long Position</button>
+                    <button id="short-btn" class="trade-button short">Short Position</button>
+                    <button id="close-btn" class="trade-button close" style="display:none;">Close Position</button>
                 </div>
                 
                 <div class="position-info">
-                    <div class="info-item">
-                        <span>Position:</span>
-                        <span id="currentPosition">None</span>
-                    </div>
-                    <div class="info-item">
+                    <div class="info-row">
                         <span>Entry Price:</span>
-                        <span id="entryPrice">-</span>
+                        <span id="entry-price">-</span>
                     </div>
-                    <div class="info-item">
-                        <span>Current P&L:</span>
-                        <span id="currentPnL">$0.00</span>
+                    <div class="info-row">
+                        <span>Current Price:</span>
+                        <span id="current-price">-</span>
                     </div>
-                    <div class="info-item">
-                        <span>Win Rate:</span>
-                        <span id="winRate">0%</span>
+                    <div class="info-row">
+                        <span>Unrealized P&L:</span>
+                        <span id="unrealized-pnl">$0.00</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Risk/Reward:</span>
+                        <span id="risk-reward">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="performance-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="total-trades">0</div>
+                    <div class="stat-label">Total Trades</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="win-rate">0%</div>
+                    <div class="stat-label">Win Rate</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="total-pnl">$0.00</div>
+                    <div class="stat-label">Total P&L</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="avg-win">$0.00</div>
+                    <div class="stat-label">Avg Win</div>
+                </div>
+            </div>
+
+            <div class="trade-history">
+                <h4>Recent Trades</h4>
+                <div class="history-table" id="trade-history-table">
+                    <div class="history-header">
+                        <span>Type</span>
+                        <span>Entry</span>
+                        <span>Exit</span>
+                        <span>P&L</span>
+                        <span>R/R</span>
                     </div>
                 </div>
             </div>
@@ -785,17 +953,34 @@
         let sentences = [];
         let currentSentenceIndex = 0;
 
+    <script>
+        // Audio Reader Variables
+        let speechSynthesis = window.speechSynthesis;
+        let currentUtterance = null;
+        let isReading = false;
+
         // Trading Simulator Variables
-        let chart = null;
+        let chartCtx;
+        let prices = [];
         let currentPosition = null;
-        let trades = [];
+        let tradeHistory = [];
         let totalTrades = 0;
         let winningTrades = 0;
+        let totalPnL = 0;
+        let isDragging = false;
+        let dragTarget = null;
+
+        // Chart constants
+        let CHART_WIDTH = 760;
+        let CHART_HEIGHT = 360;
+        let CHART_PADDING = 20;
+        let PRICE_RANGE = 2000;
+        let BASE_PRICE = 50000;
 
         // Initialize everything when page loads
         document.addEventListener('DOMContentLoaded', function() {
             loadVoices();
-            initializeChart();
+            initializeTradingSimulator();
             setupEventListeners();
         });
 
@@ -820,12 +1005,10 @@
             const minimized = document.getElementById('audioMinimized');
             
             if (controls.classList.contains('minimized')) {
-                // Expand
                 controls.classList.remove('minimized');
                 content.style.display = 'block';
                 minimized.style.display = 'none';
             } else {
-                // Minimize
                 controls.classList.add('minimized');
                 content.style.display = 'none';
                 minimized.style.display = 'flex';
@@ -843,7 +1026,6 @@
                 }
             });
             
-            sentences = fullText.split(/[.!?]+/).filter(sentence => sentence.trim().length > 10);
             return fullText;
         }
 
@@ -897,7 +1079,6 @@
                 speechSynthesis.cancel();
             }
             isReading = false;
-            currentSentenceIndex = 0;
             document.getElementById('playBtn').textContent = '▶️ Play';
             updateProgress('Stopped');
             document.getElementById('progressFill').style.width = '0%';
@@ -908,231 +1089,258 @@
         }
 
         // Trading Simulator Functions
-        function initializeChart() {
-            const canvas = document.getElementById('tradingChart');
-            const ctx = canvas.getContext('2d');
+        function initializeTradingSimulator() {
+            const canvas = document.getElementById('price-chart');
+            chartCtx = canvas.getContext('2d');
             
-            // Set canvas size
-            canvas.width = 800;
-            canvas.height = 400;
-            
+            generatePriceData();
             drawChart();
+            updateChartOverlay();
+        }
+
+        function generatePriceData() {
+            prices = [];
+            const scenario = document.getElementById('market-scenario').value;
+            
+            for (let i = 0; i < 100; i++) {
+                let price = BASE_PRICE;
+                
+                switch(scenario) {
+                    case 'uptrend':
+                        price += (i * 20) + (Math.random() - 0.5) * 200;
+                        break;
+                    case 'downtrend':
+                        price -= (i * 15) + (Math.random() - 0.5) * 180;
+                        break;
+                    case 'range':
+                        price += Math.sin(i * 0.1) * 300 + (Math.random() - 0.5) * 150;
+                        break;
+                    case 'breakout':
+                        if (i < 50) {
+                            price += (Math.random() - 0.5) * 100;
+                        } else {
+                            price += ((i - 50) * 30) + (Math.random() - 0.5) * 200;
+                        }
+                        break;
+                }
+                
+                prices.push(Math.max(price, 1000));
+            }
         }
 
         function drawChart() {
-            const canvas = document.getElementById('tradingChart');
-            const ctx = canvas.getContext('2d');
-            const scenario = document.getElementById('scenarioSelect').value;
+            chartCtx.clearRect(0, 0, CHART_WIDTH, CHART_HEIGHT);
             
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Generate price data based on scenario
-            const priceData = generatePriceData(scenario);
-            
-            // Draw background grid
-            drawGrid(ctx);
-            
-            // Draw candlesticks
-            drawCandlesticks(ctx, priceData);
-            
-            // Draw current position if exists
-            if (currentPosition) {
-                drawPositionLine(ctx, currentPosition.entryPrice);
-            }
-        }
-
-        function generatePriceData(scenario) {
-            const basePrice = 50000;
-            let prices = [];
-            
-            switch(scenario) {
-                case 'uptrend':
-                    for (let i = 0; i < 50; i++) {
-                        const trend = i * 50;
-                        const noise = (Math.random() - 0.5) * 200;
-                        prices.push(basePrice + trend + noise);
-                    }
-                    break;
-                case 'range':
-                    for (let i = 0; i < 50; i++) {
-                        const noise = (Math.random() - 0.5) * 400;
-                        prices.push(basePrice + noise);
-                    }
-                    break;
-                case 'support':
-                    for (let i = 0; i < 50; i++) {
-                        let price = basePrice - Math.abs(Math.sin(i * 0.2) * 1000);
-                        if (i > 30) price += (i - 30) * 30;
-                        prices.push(price);
-                    }
-                    break;
-                case 'resistance':
-                    for (let i = 0; i < 50; i++) {
-                        let price = basePrice + Math.abs(Math.sin(i * 0.2) * 1000);
-                        if (i > 30) price -= (i - 30) * 30;
-                        prices.push(price);
-                    }
-                    break;
-            }
-            
-            return prices;
-        }
-
-        function drawGrid(ctx) {
-            ctx.strokeStyle = 'rgba(0, 210, 255, 0.1)';
-            ctx.lineWidth = 1;
-            
-            // Vertical lines
-            for (let i = 0; i < 800; i += 40) {
-                ctx.beginPath();
-                ctx.moveTo(i, 0);
-                ctx.lineTo(i, 400);
-                ctx.stroke();
-            }
-            
-            // Horizontal lines
-            for (let i = 0; i < 400; i += 40) {
-                ctx.beginPath();
-                ctx.moveTo(0, i);
-                ctx.lineTo(800, i);
-                ctx.stroke();
-            }
-        }
-
-        function drawCandlesticks(ctx, prices) {
-            const candleWidth = 12;
-            const spacing = 16;
-            const minPrice = Math.min(...prices);
-            const maxPrice = Math.max(...prices);
+            const minPrice = Math.min(...prices) - 500;
+            const maxPrice = Math.max(...prices) + 500;
             const priceRange = maxPrice - minPrice;
             
-            ctx.lineWidth = 2;
+            // Draw grid
+            chartCtx.strokeStyle = 'rgba(0, 210, 255, 0.1)';
+            chartCtx.lineWidth = 1;
             
-            for (let i = 0; i < prices.length && i * spacing < 800; i++) {
-                const x = i * spacing + 20;
-                const price = prices[i];
-                const normalizedPrice = (price - minPrice) / priceRange;
-                const y = 350 - (normalizedPrice * 300);
+            for (let i = 0; i <= 10; i++) {
+                const y = CHART_PADDING + (i * (CHART_HEIGHT - 2 * CHART_PADDING) / 10);
+                chartCtx.beginPath();
+                chartCtx.moveTo(CHART_PADDING, y);
+                chartCtx.lineTo(CHART_WIDTH - CHART_PADDING, y);
+                chartCtx.stroke();
+            }
+            
+            for (let i = 0; i <= 10; i++) {
+                const x = CHART_PADDING + (i * (CHART_WIDTH - 2 * CHART_PADDING) / 10);
+                chartCtx.beginPath();
+                chartCtx.moveTo(x, CHART_PADDING);
+                chartCtx.lineTo(x, CHART_HEIGHT - CHART_PADDING);
+                chartCtx.stroke();
+            }
+            
+            // Draw price line
+            chartCtx.strokeStyle = '#00d2ff';
+            chartCtx.lineWidth = 2;
+            chartCtx.beginPath();
+            
+            for (let i = 0; i < prices.length; i++) {
+                const x = CHART_PADDING + (i * (CHART_WIDTH - 2 * CHART_PADDING) / (prices.length - 1));
+                const normalizedPrice = (prices[i] - minPrice) / priceRange;
+                const y = CHART_HEIGHT - CHART_PADDING - (normalizedPrice * (CHART_HEIGHT - 2 * CHART_PADDING));
                 
-                // Simple line representation
-                if (i > 0) {
-                    const prevPrice = prices[i - 1];
-                    const prevNormalizedPrice = (prevPrice - minPrice) / priceRange;
-                    const prevY = 350 - (prevNormalizedPrice * 300);
-                    
-                    ctx.strokeStyle = price > prevPrice ? '#00ff88' : '#ff4757';
-                    ctx.beginPath();
-                    ctx.moveTo((i - 1) * spacing + 20, prevY);
-                    ctx.lineTo(x, y);
-                    ctx.stroke();
+                if (i === 0) {
+                    chartCtx.moveTo(x, y);
+                } else {
+                    chartCtx.lineTo(x, y);
                 }
-                
-                // Draw price points
-                ctx.fillStyle = price > (i > 0 ? prices[i - 1] : price) ? '#00ff88' : '#ff4757';
-                ctx.beginPath();
-                ctx.arc(x, y, 3, 0, 2 * Math.PI);
-                ctx.fill();
             }
+            
+            chartCtx.stroke();
+            
+            // Update current price display
+            document.getElementById('current-price').textContent = `${prices[prices.length - 1].toFixed(2)}`;
+            
+            updatePositionInfo();
         }
 
-        function drawPositionLine(ctx, entryPrice) {
-            const prices = generatePriceData(document.getElementById('scenarioSelect').value);
-            const minPrice = Math.min(...prices);
-            const maxPrice = Math.max(...prices);
-            const priceRange = maxPrice - minPrice;
-            const normalizedPrice = (entryPrice - minPrice) / priceRange;
-            const y = 350 - (normalizedPrice * 300);
+        function updateChartOverlay() {
+            const container = document.querySelector('.chart-container');
+            const containerRect = container.getBoundingClientRect();
             
-            ctx.strokeStyle = currentPosition.type === 'long' ? '#00d2ff' : '#ff6b7a';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([5, 5]);
+            // Position draggable lines
+            const stopLossLine = document.getElementById('stop-loss-line');
+            const takeProfitLine = document.getElementById('take-profit-line');
+            const entryLine = document.getElementById('entry-line');
             
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(800, y);
-            ctx.stroke();
-            
-            ctx.setLineDash([]);
+            // Default positions
+            stopLossLine.style.top = '75%';
+            takeProfitLine.style.top = '25%';
+            entryLine.style.top = '50%';
         }
 
         function openPosition(type) {
-            if (currentPosition) {
-                closePosition();
-            }
+            if (currentPosition) return;
             
-            const prices = generatePriceData(document.getElementById('scenarioSelect').value);
             const entryPrice = prices[prices.length - 1];
-            const leverage = parseInt(document.getElementById('leverageSelect').value);
-            const positionSize = parseFloat(document.getElementById('positionSize').value);
+            const positionSize = parseFloat(document.getElementById('position-size').value);
+            const leverage = parseFloat(document.getElementById('leverage').value);
             
             currentPosition = {
                 type: type,
                 entryPrice: entryPrice,
-                leverage: leverage,
                 positionSize: positionSize,
+                leverage: leverage,
                 timestamp: Date.now()
             };
             
+            document.getElementById('entry-price').textContent = `${entryPrice.toFixed(2)}`;
+            document.getElementById('long-btn').style.display = 'none';
+            document.getElementById('short-btn').style.display = 'none';
+            document.getElementById('close-btn').style.display = 'inline-block';
+            
             updatePositionInfo();
-            drawChart();
+            calculateRiskReward();
         }
 
         function closePosition() {
             if (!currentPosition) return;
             
-            const prices = generatePriceData(document.getElementById('scenarioSelect').value);
             const exitPrice = prices[prices.length - 1];
-            const priceChange = currentPosition.type === 'long' ? 
-                (exitPrice - currentPosition.entryPrice) : 
-                (currentPosition.entryPrice - exitPrice);
+            const entryPrice = currentPosition.entryPrice;
+            const positionSize = currentPosition.positionSize;
+            const leverage = currentPosition.leverage;
             
-            const pnlPercent = (priceChange / currentPosition.entryPrice) * 100;
-            const pnlUsd = (pnlPercent / 100) * currentPosition.positionSize * currentPosition.leverage;
+            let priceChange;
+            if (currentPosition.type === 'long') {
+                priceChange = exitPrice - entryPrice;
+            } else {
+                priceChange = entryPrice - exitPrice;
+            }
+            
+            const percentChange = (priceChange / entryPrice) * 100;
+            const pnl = (percentChange / 100) * positionSize * leverage;
             
             totalTrades++;
-            if (pnlUsd > 0) winningTrades++;
+            totalPnL += pnl;
             
-            trades.push({
+            if (pnl > 0) {
+                winningTrades++;
+            }
+            
+            // Add to trade history
+            const trade = {
                 type: currentPosition.type,
-                entryPrice: currentPosition.entryPrice,
-                exitPrice: exitPrice,
-                pnl: pnlUsd,
-                timestamp: currentPosition.timestamp
-            });
+                entry: entryPrice,
+                exit: exitPrice,
+                pnl: pnl,
+                riskReward: calculateRiskRewardRatio()
+            };
+            
+            tradeHistory.unshift(trade);
+            if (tradeHistory.length > 10) {
+                tradeHistory.pop();
+            }
+            
+            updateTradeHistory();
+            updatePerformanceStats();
             
             currentPosition = null;
-            updatePositionInfo();
-            drawChart();
+            document.getElementById('entry-price').textContent = '-';
+            document.getElementById('unrealized-pnl').textContent = '$0.00';
+            document.getElementById('risk-reward').textContent = '-';
+            
+            document.getElementById('long-btn').style.display = 'inline-block';
+            document.getElementById('short-btn').style.display = 'inline-block';
+            document.getElementById('close-btn').style.display = 'none';
         }
 
         function updatePositionInfo() {
-            document.getElementById('currentPosition').textContent = 
-                currentPosition ? `${currentPosition.type.toUpperCase()} ${currentPosition.leverage}x` : 'None';
+            if (!currentPosition) return;
             
-            document.getElementById('entryPrice').textContent = 
-                currentPosition ? `$${currentPosition.entryPrice.toFixed(2)}` : '-';
+            const currentPrice = prices[prices.length - 1];
+            const entryPrice = currentPosition.entryPrice;
+            const positionSize = currentPosition.positionSize;
+            const leverage = currentPosition.leverage;
             
-            // Calculate current P&L if position exists
-            if (currentPosition) {
-                const prices = generatePriceData(document.getElementById('scenarioSelect').value);
-                const currentPrice = prices[prices.length - 1];
-                const priceChange = currentPosition.type === 'long' ? 
-                    (currentPrice - currentPosition.entryPrice) : 
-                    (currentPosition.entryPrice - currentPrice);
-                
-                const pnlPercent = (priceChange / currentPosition.entryPrice) * 100;
-                const pnlUsd = (pnlPercent / 100) * currentPosition.positionSize * currentPosition.leverage;
-                
-                document.getElementById('currentPnL').textContent = `$${pnlUsd.toFixed(2)}`;
-                document.getElementById('currentPnL').style.color = pnlUsd >= 0 ? '#00ff88' : '#ff4757';
+            let priceChange;
+            if (currentPosition.type === 'long') {
+                priceChange = currentPrice - entryPrice;
             } else {
-                document.getElementById('currentPnL').textContent = '$0.00';
-                document.getElementById('currentPnL').style.color = '#00ff88';
+                priceChange = entryPrice - currentPrice;
             }
             
+            const percentChange = (priceChange / entryPrice) * 100;
+            const unrealizedPnl = (percentChange / 100) * positionSize * leverage;
+            
+            const pnlElement = document.getElementById('unrealized-pnl');
+            pnlElement.textContent = `${unrealizedPnl.toFixed(2)}`;
+            pnlElement.style.color = unrealizedPnl >= 0 ? '#00ff88' : '#ff4757';
+        }
+
+        function calculateRiskReward() {
+            if (!currentPosition) return;
+            
+            const ratio = calculateRiskRewardRatio();
+            document.getElementById('risk-reward').textContent = ratio;
+        }
+
+        function calculateRiskRewardRatio() {
+            // Simplified R/R calculation
+            return '1:2'; // Default ratio for demo
+        }
+
+        function updatePerformanceStats() {
+            document.getElementById('total-trades').textContent = totalTrades;
+            
             const winRate = totalTrades > 0 ? ((winningTrades / totalTrades) * 100).toFixed(1) : 0;
-            document.getElementById('winRate').textContent = `${winRate}%`;
+            document.getElementById('win-rate').textContent = `${winRate}%`;
+            
+            document.getElementById('total-pnl').textContent = `${totalPnL.toFixed(2)}`;
+            document.getElementById('total-pnl').style.color = totalPnL >= 0 ? '#00ff88' : '#ff4757';
+            
+            const avgWin = winningTrades > 0 ? (totalPnL / winningTrades).toFixed(2) : '0.00';
+            document.getElementById('avg-win').textContent = `${avgWin}`;
+        }
+
+        function updateTradeHistory() {
+            const historyTable = document.getElementById('trade-history-table');
+            
+            // Clear existing rows except header
+            const existingRows = historyTable.querySelectorAll('.history-row');
+            existingRows.forEach(row => row.remove());
+            
+            // Add new rows
+            tradeHistory.forEach(trade => {
+                const row = document.createElement('div');
+                row.className = `history-row ${trade.pnl >= 0 ? 'profit' : 'loss'}`;
+                
+                row.innerHTML = `
+                    <span>${trade.type.toUpperCase()}</span>
+                    <span>${trade.entry.toFixed(2)}</span>
+                    <span>${trade.exit.toFixed(2)}</span>
+                    <span style="color: ${trade.pnl >= 0 ? '#00ff88' : '#ff4757'}">${trade.pnl.toFixed(2)}</span>
+                    <span>${trade.riskReward}</span>
+                `;
+                
+                historyTable.appendChild(row);
+            });
         }
 
         function setupEventListeners() {
@@ -1155,18 +1363,38 @@
 
             document.getElementById('speedSlider').addEventListener('input', function() {
                 document.getElementById('speedValue').textContent = this.value + 'x';
-                if (currentUtterance && speechSynthesis.speaking) {
-                    currentUtterance.rate = parseFloat(this.value);
-                }
             });
 
-            // Trading simulator controls
-            document.getElementById('scenarioSelect').addEventListener('change', drawChart);
-            
             document.getElementById('audioMinimized').addEventListener('click', toggleAudioReader);
+
+            // Trading simulator controls
+            document.getElementById('market-scenario').addEventListener('change', function() {
+                generatePriceData();
+                drawChart();
+            });
+
+            document.getElementById('long-btn').addEventListener('click', () => openPosition('long'));
+            document.getElementById('short-btn').addEventListener('click', () => openPosition('short'));
+            document.getElementById('close-btn').addEventListener('click', closePosition);
 
             // Load voices when available
             speechSynthesis.addEventListener('voiceschanged', loadVoices);
+            
+            // Simulate price updates
+            setInterval(() => {
+                if (prices.length > 0) {
+                    const lastPrice = prices[prices.length - 1];
+                    const change = (Math.random() - 0.5) * 100;
+                    const newPrice = Math.max(lastPrice + change, 1000);
+                    
+                    prices.push(newPrice);
+                    if (prices.length > 100) {
+                        prices.shift();
+                    }
+                    
+                    drawChart();
+                }
+            }, 2000);
         }
 
         // CSV Download function
@@ -1186,6 +1414,7 @@
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
         }
+    </script>
     </script>
 </body>
 </html>
