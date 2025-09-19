@@ -620,7 +620,8 @@
                 }
                 
                 try {
-                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    // Create provider with explicit network config to prevent ENS lookups
+                    provider = new ethers.providers.Web3Provider(window.ethereum, "any");
                     const accounts = await provider.send("eth_requestAccounts", []);
                     signer = provider.getSigner();
                     updateUIForAccount(accounts[0]);
@@ -733,7 +734,7 @@
                     try {
                         const accounts = await window.ethereum.request({ method: 'eth_accounts' });
                          if (accounts.length > 0) {
-                             provider = new ethers.providers.Web3Provider(window.ethereum);
+                             provider = new ethers.providers.Web3Provider(window.ethereum, "any");
                              signer = provider.getSigner();
                              updateUIForAccount(accounts[0]);
                          }
