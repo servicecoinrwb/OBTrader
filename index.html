@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Ultimate Guide to Oracle-Based Trading - Get Your Copy</title>
+    <!-- Fetches the ethers.js library required for wallet interaction -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js" type="application/javascript"></script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -43,10 +45,17 @@
             font-size: 1.25rem;
             font-weight: 600;
             transition: background-color 0.2s ease-in-out, transform 0.2s ease;
+            cursor: pointer; /* Makes it look clickable */
+            border: none; /* Removes default button border */
         }
         .cta-button:hover {
             background-color: #0056b3;
             transform: translateY(-2px);
+        }
+        .cta-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+            transform: none;
         }
         .price {
             font-size: 1rem;
@@ -100,9 +109,9 @@
     <div class="header">
         <h1>Stop Gambling. Start Trading.</h1>
         <p class="sub-headline">The definitive guide to understanding oracle-based platforms, mastering market psychology, and managing risk like a professional.</p>
-        <!-- Changed the link below to point to your course page -->
-        <a href="course.html" class="cta-button">Get Your Copy Now</a>
-        <p class="price">Only $1.00</p>
+        <!-- Changed from an <a> tag to a <button> tag to trigger the script -->
+        <button id="pay-button-header" class="cta-button">Get Your Copy Now</button>
+        <p class="price">Only 1.00 USDC</p>
     </div>
 
     <div class="content">
@@ -131,8 +140,8 @@
         <div class="section" style="text-align:center;">
              <h2>Ready to Level Up Your Trading?</h2>
              <p class="sub-headline">For the price of a coffee, you can get the framework that will save you from costly beginner mistakes and put you on the path to consistent trading.</p>
-             <!-- Changed the link below to point to your course page -->
-             <a href="course.html" class="cta-button">I'm Ready to Start</a>
+             <!-- Changed this button as well for consistency -->
+             <button id="pay-button-footer" class="cta-button">I'm Ready to Start</button>
              <p class="price">30-Day Money-Back Guarantee</p>
         </div>
 
@@ -142,5 +151,114 @@
         <p>&copy; 2025 Your Brand Name. All Rights Reserved.</p>
     </div>
 
+    <!-- ===== CRYPTO PAYMENT SCRIPT ===== -->
+    <script>
+        // --- Configuration ---
+        // IMPORTANT: Replace this with your actual wallet address.
+        const receiverAddress = "0x246926a1aa7a5266661b193E61f5390d06B965E0"; 
+
+        // UPDATED: USDC contract address on the Base network (low fees).
+        const usdcContractAddress = "0x833589fCD6eDb6E08f4c7C32D4f71b54bda02913"; 
+
+        // The ABI (Application Binary Interface) for the USDC transfer function.
+        const usdcAbi = [
+            "function transfer(address to, uint256 amount)"
+        ];
+
+        // --- Get references to the HTML buttons ---
+        const payButtonHeader = document.getElementById('pay-button-header');
+        const payButtonFooter = document.getElementById('pay-button-footer');
+        const allPayButtons = [payButtonHeader, payButtonFooter];
+
+        // --- Main Payment Function ---
+        async function handlePayment() {
+            // 1. Check if a wallet like MetaMask is installed.
+            if (typeof window.ethereum === 'undefined') {
+                alert("Please install a crypto wallet like MetaMask to continue.");
+                return;
+            }
+
+            // A quick check to make sure the user has entered their address.
+            if (receiverAddress === "YOUR_WALLET_ADDRESS_HERE") {
+                alert("The website owner needs to configure their wallet address first.");
+                return;
+            }
+
+            try {
+                // Disable buttons to prevent multiple clicks
+                allPayButtons.forEach(btn => {
+                    btn.disabled = true;
+                    btn.textContent = "Processing...";
+                });
+
+                // 2. Connect to the user's wallet (e.g., MetaMask).
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []); // Prompts user to connect.
+
+                // --- ADDED: Network Switching Logic for Base ---
+                const baseChainIdHex = '0x2105'; // 8453 in hexadecimal
+                const baseChainIdDecimal = 8453;
+                const network = await provider.getNetwork();
+
+                if (network.chainId !== baseChainIdDecimal) {
+                    try {
+                        console.log("Requesting to switch to Base network...");
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: baseChainIdHex }],
+                        });
+                    } catch (switchError) {
+                        // This error code (4902) indicates that the chain has not been added to the wallet.
+                        if (switchError.code === 4902) {
+                            alert("This app runs on the Base network. Please add the Base network to your wallet and try again.");
+                        } else {
+                            // Handle other errors, e.g., user rejection.
+                            console.error("Could not switch network:", switchError);
+                            alert("Failed to switch network. Please select the Base network in your wallet.");
+                        }
+                        throw switchError; // Stop the process if switching fails
+                    }
+                }
+                
+                // Now that we're on the right network, get the signer.
+                const signer = provider.getSigner();
+
+                // 3. Create an instance of the USDC contract.
+                const usdcContract = new ethers.Contract(usdcContractAddress, usdcAbi, signer);
+
+                // 4. Set the amount to 1 USDC. USDC has 6 decimal places.
+                const amount = ethers.utils.parseUnits("1.0", 6);
+
+                // 5. Prompt the user to sign and send the transaction.
+                console.log("Requesting payment transaction from user...");
+                const tx = await usdcContract.transfer(receiverAddress, amount);
+                
+                // 6. Wait for the transaction to be confirmed on the blockchain.
+                console.log("Waiting for transaction confirmation...");
+                await tx.wait();
+                console.log("Payment successful! Transaction hash:", tx.hash);
+
+                // 7. Redirect to the course page upon success.
+                window.location.href = "course.html";
+
+            } catch (error) {
+                // Handle errors (e.g., user rejects the transaction).
+                console.error("Payment failed:", error);
+                alert("Payment failed or was rejected. Please try again.");
+                // Re-enable buttons if payment fails
+                allPayButtons.forEach(btn => {
+                    btn.disabled = false;
+                });
+                payButtonHeader.textContent = "Get Your Copy Now";
+                payButtonFooter.textContent = "I'm Ready to Start";
+            }
+        }
+
+        // --- Attach the function to the buttons' click events ---
+        allPayButtons.forEach(btn => {
+            btn.addEventListener('click', handlePayment);
+        });
+    </script>
 </body>
 </html>
+
