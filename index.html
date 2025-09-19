@@ -6,8 +6,7 @@
     <title>The Ultimate Guide to Oracle-Based Trading</title>
     <link rel="icon" href="data:,">
     <script 
-        src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.6.9/ethers.umd.min.js"
-        integrity="sha512-JGo7s3UNfLyczlNsTqAO0DTGHQv35l4IK0pW9pB5n/TdFU6MKLw2ZUECBTDBANSqH8yc2PQs3g6bP3dIIU77Vg=="
+        src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"
         crossorigin="anonymous"
         referrerpolicy="no-referrer"
     ></script>
@@ -556,7 +555,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             // --- Configuration ---
-            const receiverAddress = "YOUR_WALLET_ADDRESS_HERE"; 
+            const receiverAddress = "0x246926a1aa7a5266661b193E61f5390d06B965E0"; 
             const usdcContractAddress = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913";
             const usdcAbi = ["function transfer(address to, uint256 amount)"];
             const baseChainId = '0x2105'; // 8453 in hex
@@ -624,14 +623,16 @@
                     // Get accounts first using direct wallet method
                     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                     
-                    // Create provider and immediately set it to Base network context
+                    // Create provider
                     provider = new ethers.providers.Web3Provider(window.ethereum);
                     
-                    // Override the network detection to prevent ENS lookups
-                    provider._network = {
-                        name: 'base',
-                        chainId: 8453,
-                        ensAddress: null
+                    // Completely override the getNetwork function to avoid ENS issues
+                    provider.getNetwork = async function() {
+                        return {
+                            name: 'base',
+                            chainId: 8453,
+                            ensAddress: null
+                        };
                     };
                     
                     signer = provider.getSigner();
