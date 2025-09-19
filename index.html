@@ -620,13 +620,9 @@
                 }
                 
                 try {
-                    // Request accounts first
-                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    
-                    // Create provider without network configuration to avoid ENS issues
                     provider = new ethers.providers.Web3Provider(window.ethereum);
-                    signer = provider.getSigner(0); // Use index instead of address
-                    
+                    const accounts = await provider.send("eth_requestAccounts", []);
+                    signer = provider.getSigner();
                     updateUIForAccount(accounts[0]);
                     return true;
                 } catch (error) {
@@ -637,8 +633,8 @@
 
             async function checkAndSwitchNetwork() {
                 try {
-                    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
-                    if (chainId !== baseChainId) {
+                    const network = await provider.getNetwork();
+                    if (network.chainId !== parseInt(baseChainId, 16)) {
                         showModal('Wrong Network', 'Please switch to the Base network in your wallet.');
                         await window.ethereum.request({
                             method: 'wallet_switchEthereumChain',
@@ -688,9 +684,7 @@
                     showModal('Processing Payment', 'Your transaction is being processed. Please wait...');
                     await tx.wait();
                     
-                    // Get user address directly from window.ethereum to avoid ENS issues
-                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                    const userAddress = accounts[0];
+                    const userAddress = await signer.getAddress();
                     recordPayment(userAddress);
                     updateUIForAccount(userAddress);
 
@@ -734,13 +728,13 @@
                     }
                 });
                 
-                // Set initial state if already connected - avoid ENS issues
+                // Set initial state if already connected
                 (async () => {
                     try {
                         const accounts = await window.ethereum.request({ method: 'eth_accounts' });
                          if (accounts.length > 0) {
                              provider = new ethers.providers.Web3Provider(window.ethereum);
-                             signer = provider.getSigner(0); // Use index instead of address
+                             signer = provider.getSigner();
                              updateUIForAccount(accounts[0]);
                          }
                     } catch(e) {
