@@ -130,6 +130,37 @@
             background-color: #2c5a8c;
         }
         
+        .read-aloud-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+
+        .read-aloud-button {
+            padding: 10px 15px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #5a9bd5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s;
+        }
+        .read-aloud-button:hover {
+            background-color: #3b75af;
+        }
+        .read-aloud-button:disabled {
+            background-color: #a0a0a0;
+            cursor: not-allowed;
+        }
+
+        #audio-player {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
         /* --- Styles for Trading Simulator --- */
         #trading-simulator-app {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -278,8 +309,13 @@
 </head>
 <body>
 
-    <div class="container">
-        <a href="index.html" class="back-link">← Back to Home</a>
+    <div class="container" id="course-content">
+        <div class="read-aloud-controls">
+             <a href="index.html" class="back-link" style="margin-bottom: 0;">← Back to Home</a>
+             <button id="read-aloud-btn" class="read-aloud-button">Read Aloud 🔊</button>
+        </div>
+        <audio id="audio-player" controls style="display: none;"></audio>
+
         <div class="header">
             <h1>The Ultimate Guide to Oracle-Based Trading 📈</h1>
         </div>
@@ -997,24 +1033,34 @@
 
         function confirmTrade() {
             const lastPrice = candles[candles.length - 1].close;
+            const showError = (message) => {
+                feedbackDiv.textContent = message;
+                feedbackDiv.className = 'result-feedback loss';
+                feedbackDiv.style.display = 'block';
+                setTimeout(() => {
+                    if (!isSimulating) feedbackDiv.style.display = 'none';
+                }, 3000);
+            };
+
             if (orderType === 'limit') {
                  if (tradeDirection === 1 && (limitPrice > lastPrice || takeProfit < limitPrice || stopLoss > limitPrice)) {
-                    alert("For a LONG LIMIT, your limit price must be below the current price, TP above limit, and SL below limit."); return;
+                    showError("For a LONG LIMIT, your limit price must be below the current price, TP above limit, and SL below limit."); return;
                 }
                  if (tradeDirection === -1 && (limitPrice < lastPrice || takeProfit > limitPrice || stopLoss < limitPrice)) {
-                    alert("For a SHORT LIMIT, your limit price must be above the current price, TP below limit, and SL above limit."); return;
+                    showError("For a SHORT LIMIT, your limit price must be above the current price, TP below limit, and SL above limit."); return;
                 }
             } else { // Market Order
                  if (tradeDirection === 1 && (takeProfit < lastPrice || stopLoss > lastPrice)) {
-                    alert("For a LONG MARKET, TP must be above current price, and SL must be below."); return;
+                    showError("For a LONG MARKET, TP must be above current price, and SL must be below."); return;
                  }
                  if (tradeDirection === -1 && (takeProfit > lastPrice || stopLoss < lastPrice)) {
-                    alert("For a SHORT MARKET, TP must be below current price, and SL must be above."); return;
+                    showError("For a SHORT MARKET, TP must be below current price, and SL must be above."); return;
                  }
                 tradeActive = true; entryPrice = lastPrice;
                 plDisplay.style.display = 'block'; updatePL(lastPrice);
             }
             tradeSetupMode = false; rrDisplay.style.display = 'none';
+            feedbackDiv.style.display = 'none'; // Hide error if trade is valid
             runSimulation();
         }
 
@@ -1085,6 +1131,158 @@
 
         window.onload = initialize;
         window.onresize = () => { updateChartConstants(); drawChart(); };
+
+        // --- Text-to-Speech Functionality ---
+        const readAloudBtn = document.getElementById('read-aloud-btn');
+        const audioPlayer = document.getElementById('audio-player');
+        let isReading = false;
+        let currentAudioUrl = null;
+
+        // 1. Function to convert Base64 to an ArrayBuffer
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        // 2. Function to convert raw PCM audio data into a WAV file
+        function pcmToWav(pcmData, sampleRate) {
+            const pcm16 = new Int16Array(pcmData);
+            const header = new ArrayBuffer(44);
+            const view = new DataView(header);
+
+            // RIFF chunk descriptor
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + pcm16.byteLength, true);
+            writeString(view, 8, 'WAVE');
+            // "fmt " sub-chunk
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true); // Subchunk1Size for PCM
+            view.setUint16(20, 1, true); // AudioFormat (1=PCM)
+            view.setUint16(22, 1, true); // NumChannels
+            view.setUint32(24, sampleRate, true); // SampleRate
+            view.setUint32(28, sampleRate * 2, true); // ByteRate
+            view.setUint16(32, 2, true); // BlockAlign
+            view.setUint16(34, 16, true); // BitsPerSample
+            // "data" sub-chunk
+            writeString(view, 36, 'data');
+            view.setUint32(40, pcm16.byteLength, true);
+
+            function writeString(view, offset, string) {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            }
+
+            const wavBlob = new Blob([view, pcm16], { type: 'audio/wav' });
+            return wavBlob;
+        }
+        
+        // 3. Main TTS function
+        async function handleReadAloud() {
+            // IMPORTANT: The Text-to-Speech model (gemini-2.5-flash-preview-tts) requires a Google AI API key.
+            // The free tier is generous. You can get a key from Google AI Studio.
+            // 1. Get your key here: https://aistudio.google.com/app/apikey
+            // 2. Paste it below to enable the Read Aloud feature.
+            const apiKey = ""; // <-- PASTE YOUR API KEY HERE
+
+            if (!apiKey) {
+                readAloudBtn.textContent = 'API Key Required';
+                readAloudBtn.disabled = true;
+                const simFeedback = document.querySelector('#trading-simulator-app #result-feedback');
+                if (simFeedback) {
+                    simFeedback.textContent = 'To enable audio, add your Google AI API key to the script in course.html.';
+                    simFeedback.className = 'result-feedback draw';
+                    simFeedback.style.display = 'block';
+                }
+                return;
+            }
+
+            if (isReading) {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+                isReading = false;
+                readAloudBtn.textContent = 'Read Aloud 🔊';
+                readAloudBtn.disabled = false;
+                return;
+            }
+
+            readAloudBtn.textContent = 'Generating Audio...';
+            readAloudBtn.disabled = true;
+            audioPlayer.style.display = 'none';
+
+            try {
+                // Extract text from the course, excluding the simulator
+                const contentElement = document.getElementById('course-content');
+                const elementsToRead = contentElement.querySelectorAll('h1, h2, h3, h4, p, li, th, td');
+                let textToRead = Array.from(elementsToRead).map(el => el.textContent).join('. ');
+                textToRead = textToRead.replace(/⚙️/g, '').replace(/📈/g, '').replace(/🧠/g, '').replace(/🗺️/g, '');
+
+
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+                const payload = {
+                    model: "gemini-2.5-flash-preview-tts",
+                    contents: [{
+                        parts: [{ text: `Say in a clear and informative tone: ${textToRead}` }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                    },
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+
+                const result = await response.json();
+                const audioData = result?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+
+                if (!audioData) throw new Error('No audio data in API response.');
+                
+                const pcmData = base64ToArrayBuffer(audioData);
+                const wavBlob = pcmToWav(pcmData, 24000); // Gemini TTS uses a 24000 sample rate
+
+                if (currentAudioUrl) {
+                    URL.revokeObjectURL(currentAudioUrl); // Clean up old URL
+                }
+                currentAudioUrl = URL.createObjectURL(wavBlob);
+                
+                audioPlayer.src = currentAudioUrl;
+                audioPlayer.style.display = 'block';
+                audioPlayer.play();
+                isReading = true;
+                readAloudBtn.textContent = 'Stop Reading ⏹️';
+                readAloudBtn.disabled = false;
+
+            } catch (error) {
+                console.error('TTS Error:', error);
+                readAloudBtn.textContent = 'Error - Try Again';
+                readAloudBtn.disabled = false;
+                 const simFeedback = document.querySelector('#trading-simulator-app #result-feedback');
+                if (simFeedback) {
+                    simFeedback.textContent = `TTS Error: ${error.message}`;
+                    simFeedback.className = 'result-feedback loss';
+                    simFeedback.style.display = 'block';
+                }
+            }
+        }
+
+        readAloudBtn.addEventListener('click', handleReadAloud);
+        audioPlayer.addEventListener('ended', () => {
+            isReading = false;
+            readAloudBtn.textContent = 'Read Aloud 🔊';
+            readAloudBtn.disabled = false;
+            audioPlayer.style.display = 'none';
+        });
     </script>
 </body>
 </html>
