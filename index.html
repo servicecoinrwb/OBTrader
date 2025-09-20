@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Ultimate Guide to Oracle-Based Trading</title>
+    <title>Oracle Trading Course - Decentralized Edge</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="icon" href="data:,">
     <script 
@@ -160,6 +160,28 @@
             line-height: 1.5;
         }
         
+        .value-highlight {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 2rem auto;
+            max-width: 600px;
+            text-align: center;
+        }
+        
+        .value-highlight h3 {
+            color: #00ff88;
+            font-size: 1.4rem;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .value-highlight p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+        
         .cta-button {
             display: inline-block;
             margin-top: 2.5rem;
@@ -249,6 +271,11 @@
             overflow: hidden;
         }
         
+        .feature-item.premium {
+            border: 2px solid rgba(0, 255, 136, 0.4);
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
         .feature-item::before {
             content: '';
             position: absolute;
@@ -259,6 +286,11 @@
             background: linear-gradient(90deg, #00d2ff, #3a7bd5, #00ff88);
             opacity: 0;
             transition: opacity 0.3s ease;
+        }
+        
+        .feature-item.premium::before {
+            background: linear-gradient(90deg, #00ff88, #00d2ff);
+            opacity: 1;
         }
         
         .feature-item:hover {
@@ -282,9 +314,85 @@
             font-weight: 600;
         }
         
+        .feature-item.premium h3 {
+            background: linear-gradient(135deg, #00ff88, #00d2ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
         .feature-item p {
             color: rgba(255, 255, 255, 0.8);
             line-height: 1.6;
+        }
+        
+        .premium-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: linear-gradient(135deg, #00ff88, #00d2ff);
+            color: #0f0f23;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .tools-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 3rem;
+            margin-top: 4rem;
+        }
+        
+        .tool-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 2.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #00ff88, #00d2ff);
+        }
+        
+        .tool-card h3 {
+            color: #00ff88;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .tool-features {
+            list-style: none;
+            padding: 0;
+            margin: 1.5rem 0;
+        }
+        
+        .tool-features li {
+            padding: 0.5rem 0;
+            color: rgba(255, 255, 255, 0.8);
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .tool-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #00ff88;
+            font-weight: bold;
         }
         
         .footer {
@@ -392,7 +500,7 @@
                 padding: 1rem 2rem;
             }
             
-            .features-grid {
+            .features-grid, .tools-preview {
                 grid-template-columns: 1fr;
             }
             
@@ -487,39 +595,88 @@
         </div>
         
         <h1>Stop Gambling. Start Trading.</h1>
-        <p class="sub-headline">The definitive guide to understanding oracle-based platforms, mastering market psychology, and managing risk like a professional.</p>
+        <p class="sub-headline">Master oracle-based platforms with professional-grade tools: comprehensive course + interactive simulator + personal trading journal.</p>
+        
+        <div class="value-highlight">
+            <h3>🎯 Complete Trading System Included</h3>
+            <p>Get immediate access to our advanced trading simulator and professional journal - tools worth $100+ included FREE</p>
+        </div>
+        
         <button id="pay-button-1" class="cta-button">Get Your Copy Now</button>
         <p class="price">Pay with 1 USDC on Base Network</p>
     </div>
 
     <div class="content">
         <div class="section">
-            <h2>What You'll Learn Inside</h2>
+            <h2>What You Get Inside</h2>
             <div class="features-grid">
                 <div class="feature-item">
                     <h3>Master the Fundamentals</h3>
-                    <p>Go from zero to one hundred as we break down complex topics like oracles, open interest, and funding rates into simple, easy-to-understand concepts.</p>
+                    <p>Go from zero to expert as we break down complex topics like oracles, open interest, and funding rates into simple, actionable concepts you can use immediately.</p>
                 </div>
                 <div class="feature-item">
-                    <h3>Actionable Trading Strategies</h3>
-                    <p>Learn two complete, opposing strategies—Contrarian Fading and Momentum Breakouts—with clear, step-by-step execution plans you can use today.</p>
+                    <h3>Two Complete Trading Strategies</h3>
+                    <p>Learn opposing strategies—Contrarian Fading and Momentum Breakouts—with step-by-step execution plans, entry/exit rules, and risk management protocols.</p>
+                </div>
+                <div class="feature-item premium">
+                    <div class="premium-badge">Bonus Tool</div>
+                    <h3>Interactive Trading Simulator</h3>
+                    <p>Practice strategies risk-free with our advanced Bitcoin simulator featuring real market scenarios, drag-and-drop order management, and performance tracking.</p>
+                </div>
+                <div class="feature-item premium">
+                    <div class="premium-badge">Bonus Tool</div>
+                    <h3>Professional Trading Journal</h3>
+                    <p>Track every trade with our branded journal featuring oracle-specific metrics, strategy analysis, P&L tracking, and CSV export capabilities.</p>
                 </div>
                 <div class="feature-item">
-                    <h3>Master Your Mindset</h3>
-                    <p>Discover why the market "hunts" liquidity and learn to control the fear, greed, and cognitive biases that are holding you back from profitability.</p>
+                    <h3>Master Market Psychology</h3>
+                    <p>Understand why the market "hunts" liquidity and learn to control fear, greed, and cognitive biases that destroy trading accounts.</p>
                 </div>
                 <div class="feature-item">
                     <h3>Professional Risk Management</h3>
-                    <p>Move beyond guesswork. Use our pre-flight checklist, interactive calculators, and trading journal template to make disciplined, data-driven decisions.</p>
+                    <p>Use our pre-flight checklist, position sizing calculators, and proven frameworks to make disciplined, data-driven trading decisions.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Exclusive Professional Tools</h2>
+            <p style="text-align: center; font-size: 1.2rem; color: rgba(255, 255, 255, 0.8); margin-bottom: 3rem;">These premium tools alone are worth more than the course price</p>
+            
+            <div class="tools-preview">
+                <div class="tool-card">
+                    <h3>🎮 Interactive Trading Simulator</h3>
+                    <p>Practice your strategies in a risk-free environment with realistic market conditions and instant feedback.</p>
+                    <ul class="tool-features">
+                        <li>Real-time Bitcoin price simulation</li>
+                        <li>Drag-and-drop order management</li>
+                        <li>Multiple market scenarios (bull flags, ranges, breakouts)</li>
+                        <li>Performance tracking and equity curves</li>
+                        <li>Risk/reward ratio calculations</li>
+                        <li>Trade history with detailed analytics</li>
+                    </ul>
+                </div>
+                
+                <div class="tool-card">
+                    <h3>📊 Professional Trading Journal</h3>
+                    <p>Track and analyze every trade with oracle-specific metrics to continuously improve your performance.</p>
+                    <ul class="tool-features">
+                        <li>Oracle platform integration (gTrade, GMX, etc.)</li>
+                        <li>Funding rate and skew tracking</li>
+                        <li>Strategy performance analysis</li>
+                        <li>Automatic P&L calculations</li>
+                        <li>Win rate and profit factor metrics</li>
+                        <li>CSV/JSON export for advanced analysis</li>
+                    </ul>
                 </div>
             </div>
         </div>
         
         <div class="section" style="text-align:center;">
-            <h2>Ready to Level Up Your Trading?</h2>
-            <p class="sub-headline">For the price of a coffee, you can get the framework that will save you from costly beginner mistakes and put you on the path to consistent trading.</p>
-            <button id="pay-button-2" class="cta-button">I'm Ready to Start</button>
-             <p class="price">Requires a crypto wallet connected to Base Network</p>
+            <h2>Ready to Transform Your Trading?</h2>
+            <p class="sub-headline">Get the complete system: course + simulator + journal. Everything you need to trade like a professional for less than the cost of a single losing trade.</p>
+            <button id="pay-button-2" class="cta-button">Start Trading Professionally</button>
+            <p class="price">Requires a crypto wallet connected to Base Network</p>
         </div>
     </div>
 
@@ -609,7 +766,7 @@
                     });
                 } else {
                     payButton1.textContent = 'Get Your Copy Now';
-                    payButton2.textContent = "I'm Ready to Start";
+                    payButton2.textContent = 'Start Trading Professionally';
                 }
             }
 
