@@ -491,7 +491,7 @@
             </div>
             
             <div class="button-group">
-                <button type="button" onclick="calculatePosition()">Calculate Position</button>
+                <button type="button" onclick="manualCalculatePosition()">Calculate Position</button>
                 <button type="button" onclick="useCalculatedValues()">Use in Trade Form</button>
             </div>
             
@@ -983,15 +983,27 @@
 
         // Position Sizing Calculator Functions
         function calculatePosition() {
-            const accountBalance = parseFloat(document.getElementById('accountBalance').value) || 0;
+            const accountBalanceValue = document.getElementById('accountBalance').value;
+            const entryPriceValue = document.getElementById('calcEntryPrice').value;
+            const stopLossValue = document.getElementById('calcStopLoss').value;
+            
+            // Check if fields are empty or contain only whitespace
+            if (!accountBalanceValue || !accountBalanceValue.trim() || 
+                !entryPriceValue || !entryPriceValue.trim() || 
+                !stopLossValue || !stopLossValue.trim()) {
+                return; // Silently return without alert for better UX
+            }
+            
+            const accountBalance = parseFloat(accountBalanceValue);
             const riskPercent = parseFloat(document.getElementById('riskPercent').value) || 1;
-            const entryPrice = parseFloat(document.getElementById('calcEntryPrice').value) || 0;
-            const stopLoss = parseFloat(document.getElementById('calcStopLoss').value) || 0;
+            const entryPrice = parseFloat(entryPriceValue);
+            const stopLoss = parseFloat(stopLossValue);
             const leverage = parseFloat(document.getElementById('calcLeverage').value) || 1;
             
-            if (!accountBalance || !entryPrice || !stopLoss) {
-                alert('Please fill in Account Balance, Entry Price, and Stop Loss');
-                return;
+            // Check if parsed values are valid numbers
+            if (isNaN(accountBalance) || isNaN(entryPrice) || isNaN(stopLoss) || 
+                accountBalance <= 0 || entryPrice <= 0 || stopLoss <= 0) {
+                return; // Silently return for invalid numbers
             }
             
             const riskAmount = accountBalance * (riskPercent / 100);
@@ -1020,6 +1032,22 @@
                 leverage: leverage,
                 margin: suggestedMargin
             };
+        }
+        
+        function manualCalculatePosition() {
+            const accountBalanceValue = document.getElementById('accountBalance').value;
+            const entryPriceValue = document.getElementById('calcEntryPrice').value;
+            const stopLossValue = document.getElementById('calcStopLoss').value;
+            
+            // Only show alert when manually clicking calculate button
+            if (!accountBalanceValue || !accountBalanceValue.trim() || 
+                !entryPriceValue || !entryPriceValue.trim() || 
+                !stopLossValue || !stopLossValue.trim()) {
+                alert('Please fill in Account Balance, Entry Price, and Stop Loss');
+                return;
+            }
+            
+            calculatePosition(); // Call the main calculation function
         }
         
         function useCalculatedValues() {
