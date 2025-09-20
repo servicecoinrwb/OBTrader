@@ -447,6 +447,61 @@
         </div>
         
         <div class="section">
+            <h2>Position Sizing Calculator</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="accountBalance">Account Balance ($)</label>
+                    <input type="number" id="accountBalance" step="0.01" placeholder="10000">
+                </div>
+                
+                <div class="form-group">
+                    <label for="riskPercent">Risk per Trade (%)</label>
+                    <input type="number" id="riskPercent" step="0.1" placeholder="1" min="0.1" max="10">
+                </div>
+                
+                <div class="form-group">
+                    <label for="calcEntryPrice">Entry Price ($)</label>
+                    <input type="number" id="calcEntryPrice" step="0.01" placeholder="60000">
+                </div>
+                
+                <div class="form-group">
+                    <label for="calcStopLoss">Stop Loss ($)</label>
+                    <input type="number" id="calcStopLoss" step="0.01" placeholder="58000">
+                </div>
+                
+                <div class="form-group">
+                    <label for="calcLeverage">Leverage</label>
+                    <input type="number" id="calcLeverage" placeholder="5" min="1" max="500">
+                </div>
+                
+                <div class="form-group">
+                    <label>Risk Amount ($)</label>
+                    <div class="stat-value" id="riskAmount" style="color: #ef5350; font-size: 1.2rem;">$0.00</div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Suggested Margin ($)</label>
+                    <div class="stat-value" id="suggestedMargin" style="color: #00ff88; font-size: 1.2rem;">$0.00</div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Total Position Size ($)</label>
+                    <div class="stat-value" id="totalPositionCalc" style="color: #00d2ff; font-size: 1.2rem;">$0.00</div>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button type="button" onclick="calculatePosition()">Calculate Position</button>
+                <button type="button" onclick="useCalculatedValues()">Use in Trade Form</button>
+            </div>
+            
+            <div class="value-highlight" id="calculatorWarning" style="display: none; margin-top: 1rem;">
+                <h3 style="color: #ef5350; margin-bottom: 0.5rem;">Risk Warning</h3>
+                <p style="color: rgba(255, 255, 255, 0.9);">This position size exceeds recommended risk management guidelines. Consider reducing leverage or position size.</p>
+            </div>
+        </div>
+        
+        <div class="section">
             <h2>Add New Trade</h2>
             <form id="tradeForm">
                 <div class="form-grid">
@@ -925,6 +980,73 @@
                 }
             }
         }
+
+        // Position Sizing Calculator Functions
+        function calculatePosition() {
+            const accountBalance = parseFloat(document.getElementById('accountBalance').value) || 0;
+            const riskPercent = parseFloat(document.getElementById('riskPercent').value) || 1;
+            const entryPrice = parseFloat(document.getElementById('calcEntryPrice').value) || 0;
+            const stopLoss = parseFloat(document.getElementById('calcStopLoss').value) || 0;
+            const leverage = parseFloat(document.getElementById('calcLeverage').value) || 1;
+            
+            if (!accountBalance || !entryPrice || !stopLoss) {
+                alert('Please fill in Account Balance, Entry Price, and Stop Loss');
+                return;
+            }
+            
+            const riskAmount = accountBalance * (riskPercent / 100);
+            const priceRisk = Math.abs(entryPrice - stopLoss);
+            const positionSizeInAsset = riskAmount / priceRisk;
+            const positionSizeInUSD = positionSizeInAsset * entryPrice;
+            const suggestedMargin = positionSizeInUSD / leverage;
+            
+            // Update display
+            document.getElementById('riskAmount').textContent = `${riskAmount.toFixed(2)}`;
+            document.getElementById('suggestedMargin').textContent = `${suggestedMargin.toFixed(2)}`;
+            document.getElementById('totalPositionCalc').textContent = `${positionSizeInUSD.toFixed(2)}`;
+            
+            // Risk warning for high leverage or large positions
+            const warningDiv = document.getElementById('calculatorWarning');
+            if (riskPercent > 2 || leverage > 20 || suggestedMargin > accountBalance * 0.1) {
+                warningDiv.style.display = 'block';
+            } else {
+                warningDiv.style.display = 'none';
+            }
+            
+            // Store calculated values for transfer
+            window.calculatedValues = {
+                entryPrice: entryPrice,
+                stopLoss: stopLoss,
+                leverage: leverage,
+                margin: suggestedMargin
+            };
+        }
+        
+        function useCalculatedValues() {
+            if (!window.calculatedValues) {
+                alert('Please calculate position first');
+                return;
+            }
+            
+            // Transfer values to trade form
+            document.getElementById('entryPrice').value = window.calculatedValues.entryPrice;
+            document.getElementById('stopLoss').value = window.calculatedValues.stopLoss;
+            document.getElementById('leverage').value = window.calculatedValues.leverage;
+            document.getElementById('positionSize').value = window.calculatedValues.margin.toFixed(2);
+            
+            // Scroll to trade form
+            document.querySelector('.section').scrollIntoView({ behavior: 'smooth' });
+            
+            alert('Values transferred to trade form!');
+        }
+        
+        // Auto-calculate when values change
+        ['accountBalance', 'riskPercent', 'calcEntryPrice', 'calcStopLoss', 'calcLeverage'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener('input', calculatePosition);
+            }
+        });
     </script>
 </body>
 </html>
