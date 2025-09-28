@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Collateral Harvest Playbook</title>
+  <style>
+    :root{
+      --bg:#0b0f14;            /* deep charcoal */
+      --panel:#121823;         /* panel background */
+      --muted:#8aa0b3;         /* muted text */
+      --text:#e8f0f7;          /* main text */
+      --brand:#57c1ff;         /* accent blue */
+      --brand-2:#28e0b9;       /* accent teal */
+      --warn:#ffd166;          /* warning */
+      --danger:#ff6b6b;        /* danger */
+      --safe:#56e39f;          /* safe */
+      --shadow: 0 10px 25px rgba(0,0,0,.35);
+      --radius: 16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:radial-gradient(1200px 800px at 80% -10%, rgba(87,193,255,.12), transparent 55%),
+                 radial-gradient(800px 600px at 0% 110%, rgba(40,224,185,.12), transparent 55%),
+                 var(--bg);
+      color:var(--text);
+    }
+    .container{max-width:1000px; margin:0 auto; padding:24px}
+    header{
+      position:sticky; top:0; z-index:50; backdrop-filter:saturate(180%) blur(10px);
+      background:rgba(11,15,20,.7); border-bottom:1px solid rgba(138,160,179,.12);
+    }
+    .header-inner{display:flex; align-items:center; gap:16px; padding:14px 24px}
+    .logo{display:grid; place-items:center; width:42px; height:42px; border-radius:12px; background:linear-gradient(135deg, var(--brand), var(--brand-2)); box-shadow:var(--shadow); font-weight:800}
+    .title{font-size:20px; font-weight:800; letter-spacing:.2px}
+    .subtitle{color:var(--muted); font-size:13px}
+    .grid{display:grid; gap:18px}
+    @media(min-width:900px){ .grid{grid-template-columns:1.2fr 1fr} }
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.0)); border:1px solid rgba(138,160,179,.16); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow)}
+    .card h2{margin:0 0 8px 0; font-size:18px}
+    .eyebrow{display:inline-flex; align-items:center; gap:8px; font-size:12px; letter-spacing:.4px; text-transform:uppercase; color:var(--muted); margin-bottom:8px}
+    .pill{display:inline-flex; align-items:center; gap:8px; border-radius:999px; padding:6px 10px; font-size:12px; border:1px solid rgba(138,160,179,.25)}
+    .pill.safe{background:rgba(86,227,159,.12); border-color:rgba(86,227,159,.35); color:var(--safe)}
+    .pill.warn{background:rgba(255,209,102,.12); border-color:rgba(255,209,102,.35); color:var(--warn)}
+    .pill.danger{background:rgba(255,107,107,.12); border-color:rgba(255,107,107,.35); color:var(--danger)}
+    ul{margin:10px 0 0 0; padding:0 0 0 18px}
+    li{margin:8px 0}
+    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; background:#0d131b; border:1px solid rgba(138,160,179,.25); padding:2px 6px; border-radius:6px}
+    .row{display:flex; flex-wrap:wrap; gap:10px; margin-top:10px}
+    .btn{cursor:pointer; border:1px solid rgba(138,160,179,.25); background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); color:var(--text); padding:10px 14px; border-radius:12px; font-weight:600}
+    .btn.primary{border-color:transparent; background:linear-gradient(135deg, var(--brand), var(--brand-2)); color:#081019}
+    .btn.ghost{background:transparent}
+    .note{font-size:13px; color:var(--muted)}
+
+    /* Scenario table */
+    table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:14px; border:1px solid rgba(138,160,179,.16); box-shadow:var(--shadow); margin-top:8px}
+    th, td{padding:14px; text-align:left}
+    thead th{font-size:12px; letter-spacing:.4px; text-transform:uppercase; color:var(--muted); background:rgba(255,255,255,.02)}
+    tbody tr+tr td{border-top:1px solid rgba(138,160,179,.12)}
+
+    /* Callouts */
+    .callout{display:flex; gap:12px; align-items:flex-start; background:linear-gradient(180deg, rgba(87,193,255,.10), rgba(40,224,185,.06)); border:1px solid rgba(138,160,179,.22); padding:14px; border-radius:14px; margin-top:10px}
+    .dot{width:10px; height:10px; border-radius:50%; background:linear-gradient(135deg, var(--brand), var(--brand-2)); margin-top:6px}
+
+    footer{opacity:.9; text-align:center; font-size:12px; color:var(--muted); padding:24px}
+
+    /* Print */
+    @media print{
+      header{position:static; background:none; border:none}
+      .card, table{box-shadow:none}
+      body{background:#fff; color:#000}
+      .btn{display:none}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner container">
+      <div class="logo">Δ</div>
+      <div>
+        <div class="title">Collateral Harvest Playbook</div>
+        <div class="subtitle">Rules and triggers for paying loans down when collateral moves</div>
+      </div>
+      <div style="margin-left:auto" class="row">
+        <button class="btn ghost" onclick="window.print()">Print</button>
+        <button class="btn primary" onclick="scrollToEl('#triggers')">View Triggers</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container grid">
+    <!-- Left column: Triggers & Rules -->
+    <section class="card" id="triggers">
+      <div class="eyebrow">When Collateral Pumps</div>
+      <h2>Harvest Triggers (Up Moves)</h2>
+      <ul>
+        <li><span class="pill safe">+30% price</span> → Repay <strong>10–15%</strong> of outstanding loan (from stables or sell a small slice of collateral).</li>
+        <li><span class="pill warn">+50% price</span> →
+          <ul>
+            <li><strong>Safe:</strong> Repay <strong>20–25%</strong> of loan.</li>
+            <li><strong>Balanced:</strong> Repay 10% <em>and</em> borrow 10% more to deploy into safe yield.</li>
+          </ul>
+        </li>
+        <li><span class="pill danger">+100% price (2×)</span> → Repay at least <strong>25–30%</strong> of loan, or skim gains and freeze loan size.</li>
+      </ul>
+
+      <div class="eyebrow" style="margin-top:18px">When Collateral Drops</div>
+      <h2>Defense Triggers (Down Moves)</h2>
+      <ul>
+        <li><span class="pill warn">−20% price</span> → If health &lt; <span class="kbd">1.3</span>, repay <strong>5–10%</strong> of loan or add collateral.</li>
+        <li><span class="pill danger">−30% price</span> → Repay <strong>15–20%</strong> of loan or add collateral to restore safe buffer.</li>
+      </ul>
+
+      <div class="callout">
+        <div class="dot"></div>
+        <div>
+          <strong>Rule of Thumb:</strong> Keep health <span class="kbd">&gt; 1.3</span> (comfort: <span class="kbd">≥ 1.5</span>). Only increase borrow size if your net yield spread is <strong>&gt; 5–7%</strong>.
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn" onclick="scrollToEl('#scenario')">See Scenarios</button>
+        <button class="btn ghost" onclick="toggleNotes()">Toggle Notes</button>
+      </div>
+    </section>
+
+    <!-- Right column: Quick Rules / Example -->
+    <aside class="card">
+      <div class="eyebrow">Quick Rules</div>
+      <h2>Operating Checklist</h2>
+      <ul>
+        <li>Health target: <strong>≥ 1.5</strong>; alert at <strong>1.3</strong>.</li>
+        <li>Prefer repaying loan over chasing marginal yield.</li>
+        <li>Use <em>partial</em> profit-takes; keep core exposure.</li>
+        <li>Borrow more only during strong uptrends and with ample buffer.</li>
+        <li>Expect retracements after big pumps; harvest accordingly.</li>
+      </ul>
+
+      <div class="eyebrow" style="margin-top:18px">Customization</div>
+      <h2>Your Numbers (Example)</h2>
+      <p class="note">Edit the inputs below to mirror your live position.</p>
+
+      <div class="row">
+        <label>Collateral ($) <input id="collateral" type="number" value="11950" class="kbd" style="width:120px"></label>
+        <label>Loan ($) <input id="loan" type="number" value="6900" class="kbd" style="width:100px"></label>
+        <label>Cap LTV (%) <input id="cap" type="number" value="77" class="kbd" style="width:80px"></label>
+      </div>
+      <div class="row">
+        <button class="btn" onclick="recalc()">Recalculate</button>
+        <span id="stats" class="note"></span>
+      </div>
+    </aside>
+
+    <!-- Full-width: Scenario table -->
+    <section class="card" id="scenario" style="grid-column:1/-1">
+      <div class="eyebrow">What-If: +50% Collateral Pump</div>
+      <h2>Strategy Outcomes</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Strategy</th>
+            <th>Collateral Value</th>
+            <th>Loan</th>
+            <th>New LTV</th>
+            <th>Safety</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="scenario-body">
+          <!-- rows filled by JS using current inputs -->
+        </tbody>
+      </table>
+      <p class="note">Scenarios assume a 50% rise in collateral. Adjust your base inputs above and click <strong>Recalculate</strong>.</p>
+    </section>
+  </main>
+
+  <footer>
+    Built for quick decision-making when markets move. Print it, or save as PDF for your runbook.
+  </footer>
+
+  <script>
+    function scrollToEl(sel){
+      const el=document.querySelector(sel); if(!el) return; window.scrollTo({top:el.getBoundingClientRect().top + window.scrollY - 80, behavior:'smooth'});
+    }
+    function fmt(n){ return new Intl.NumberFormat(undefined,{style:'currency', currency:'USD', maximumFractionDigits:0}).format(n) }
+    function ltv(collateral, loan){ if(collateral<=0) return 0; return (loan/collateral)*100 }
+    function safetyTag(pct){
+      if(pct < 35) return '<span class="pill safe">Ultra Safe</span>'
+      if(pct < 50) return '<span class="pill safe">Safe</span>'
+      if(pct < 65) return '<span class="pill warn">Moderate</span>'
+      return '<span class="pill danger">Tight</span>'
+    }
+    function recalc(){
+      const c = +document.getElementById('collateral').value || 0;
+      const d = +document.getElementById('loan').value || 0;
+      const cap = +document.getElementById('cap').value || 77;
+
+      const curLTV = ltv(c,d);
+      const healthApprox = (100/Math.max(curLTV,1)) * (cap/100); // rough visual proxy
+      document.getElementById('stats').innerHTML = `Current LTV: <strong>${curLTV.toFixed(1)}%</strong> · Health≈ <span class="kbd">${healthApprox.toFixed(2)}</span>`;
+
+      // Build scenarios for +50% pump
+      const pumped = c * 1.5;
+      const rows = [];
+
+      // A: Do nothing
+      let ltvA = ltv(pumped, d);
+      rows.push(`<tr>
+          <td><strong>(A) Do Nothing</strong></td>
+          <td>${fmt(pumped)}</td>
+          <td>${fmt(d)}</td>
+          <td>${ltvA.toFixed(1)}%</td>
+          <td>${safetyTag(ltvA)}</td>
+          <td>Health improves passively as collateral rises.</td>
+        </tr>`);
+
+      // B: Sell collateral → repay $2k (or 20% of loan if smaller)
+      const repayB = Math.min(2000, d*0.2);
+      const colBSell = repayB; // assume $1:$1 for simplicity
+      let ltvB = ltv(pumped - colBSell, d - repayB);
+      rows.push(`<tr>
+          <td><strong>(B) Sell to Repay</strong></td>
+          <td>${fmt(pumped - colBSell)}</td>
+          <td>${fmt(d - repayB)}</td>
+          <td>${ltvB.toFixed(1)}%</td>
+          <td>${safetyTag(ltvB)}</td>
+          <td>Locks in gains; permanently safer.</td>
+        </tr>`);
+
+      // C: Borrow +$2k
+      let ltvC = ltv(pumped, d + 2000);
+      rows.push(`<tr>
+          <td><strong>(C) Borrow More</strong></td>
+          <td>${fmt(pumped)}</td>
+          <td>${fmt(d + 2000)}</td>
+          <td>${ltvC.toFixed(1)}%</td>
+          <td>${safetyTag(ltvC)}</td>
+          <td>Extracts capital; gives back some safety.</td>
+        </tr>`);
+
+      // D: Hybrid → sell $1k & borrow $1k
+      let ltvD = ltv(pumped - 1000, d /* repay 0 */ + 1000);
+      rows.push(`<tr>
+          <td><strong>(D) Hybrid</strong></td>
+          <td>${fmt(pumped - 1000)}</td>
+          <td>${fmt(d + 1000)}</td>
+          <td>${ltvD.toFixed(1)}%</td>
+          <td>${safetyTag(ltvD)}</td>
+          <td>Balanced: secures some gains and frees some stables.</td>
+        </tr>`);
+
+      document.getElementById('scenario-body').innerHTML = rows.join('');
+    }
+    function toggleNotes(){
+      document.querySelectorAll('.note').forEach(n=>{
+        n.style.display = (n.style.display==='none') ? '' : 'none';
+      })
+    }
+    // initialize
+    recalc();
+  </script>
+</body>
+</html>
